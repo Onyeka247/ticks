@@ -1,0 +1,959 @@
+<html lang="en" style="touch-action: pan-y;"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>Ticket</title>
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode/dist/JsBarcode.all.min.js"></script>
+    <style>
+        /* Prevent zooming and ensure fixed layout */
+        html, body {
+            touch-action: manipulation;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #fff; /* or your app background */
+            height: 100%;
+        }
+        
+        input, select, textarea {
+            font-size: 16px; /* Prevents iOS zoom on focus */
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        
+        body {
+            background-color: transparent;
+            color: #333;
+            font-size: 16px;
+            height: auto; /* Changed from 100vh to auto for content wrap */
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+            position: relative; /* Changed from fixed to relative */
+            width: 100%;
+            overflow: visible; /* Changed from hidden to visible */
+            padding-top: env(safe-area-inset-top);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            padding-bottom: env(safe-area-inset-bottom);
+            justify-content: flex-start; /* Move content to top */
+        }
+        
+        .header {
+            margin-bottom: 1px; /* Added minimal margin for thin space */
+        }
+        
+        .header {
+            background-color: #000;
+            padding: 2px 15px 4px 15px; /* Slightly increased bottom padding */
+            padding-top: env(safe-area-inset-top);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start; /* Align contents to top */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            z-index: 10;
+        }
+
+        body {
+            margin-top: 0;
+            padding-top: calc(env(safe-area-inset-top) + 45px); /* Adjusted padding for fixed header */
+            height: auto;
+            overflow: visible;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* Move content to top */
+            min-height: 100vh; /* Ensure body fills viewport height */
+        }
+
+        .content-wrap {
+            padding-bottom: 50px; /* Add bottom padding to push content up */
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .tabs {
+            /* Keep tabs size unchanged */
+            height: auto;
+        }
+
+        body {
+            justify-content: flex-start; /* Ensure content is aligned to top */
+            margin-bottom: 0; /* Remove any bottom margin */
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                padding-bottom: 40px; /* Ensure enough space on small screens */
+            }
+        }
+
+        .standalone-mode .header {
+            padding-bottom: 0.1cmpx; /* Ensure enough space in standalone mode */
+        }
+        
+        .close {
+            font-size: 28px;
+            cursor: pointer;
+            color: #fff;
+            font-weight: 300;
+            align-self: flex-start;
+            position: relative;
+            z-index: 20;
+        }
+        
+        @media (max-width: 600px) {
+            .header {
+                padding-top: env(safe-area-inset-top);
+                top: 0;
+            }
+        }
+        
+        .ticket-image-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+            padding: 20px 15px;
+            text-align: center; /* Center all text in the overlay */
+        }
+
+        .event-title-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+            padding: 0 10px;
+            position: relative;
+            z-index: 20;
+        }
+
+        .event-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-align: center; /* Center the event title */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            position: relative;
+            z-index: 20;
+            color: #fff;
+        }
+
+        .event-subtitle {
+            font-weight: normal;
+        }
+
+        .event-details {
+            font-size: 13px;
+            text-align: center; /* Center the event details */
+            margin: 0 auto; /* Center block element */
+            max-width: 90%; /* Prevent text from stretching too wide */
+            position: relative;
+            z-index: 20;
+            color: #fff;
+        }
+
+        @media (max-width: 414px) {
+            .event-title {
+                max-width: 280px; /* Limit width on iPhone 11 Pro Max */
+            }
+        }
+        
+        .help {
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 5px 10px;
+            align-self: flex-start;
+            position: relative;
+            z-index: 20;
+        }
+        
+        .tabs {
+            display: flex;
+            background-color: #0052cc;
+            color: white;
+            position: relative;
+            z-index: 15;
+            margin-top: 1px;
+        }
+        
+        .tabs div {
+            flex: 1;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .tabs div.active {
+            border-bottom: 3px solid white;
+        }
+        
+        .ticket-card {
+            background-color: transparent;
+            border-radius: 10px;
+            margin: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .ticket-header {
+            background-color: #0052cc;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .seat-info {
+            display: flex;
+            padding: 15px;
+            background-color: transparent;
+            color: white;
+        }
+        
+        .seat-column {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .seat-label {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .seat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .barcode-container {
+            padding: 10px 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: transparent;
+            margin: 5px auto;
+            max-width: 280px;
+        }
+        
+        .barcode {
+            width: 300px;
+            height: 100px;
+            position: relative;
+            margin: 0 auto 5px auto;
+            background-color: white;
+            padding: 0;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .barcode img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        
+        .barcode-scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: #2196f3;
+            animation: scan-move-x 1.5s linear infinite;
+            opacity: 0.85;
+            z-index: 2;
+        }
+
+        @keyframes scan-move-x {
+            0% { left: 0; }
+            100% { left: 177px; } /* 180px container width minus line width */
+        }
+        
+        .warning {
+            color: white;
+            font-size: 10px;
+            text-align: center;
+            margin: 2px 0;
+        }
+        
+        .add-to-wallet {
+            background-color: #000;
+            color: white;
+            border: none;
+            border-radius: 13px;
+            padding: 16px 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 3px auto;
+            width: 100%;
+            max-width: 200px;
+            box-shadow: 0 0 0 1px white, 0 0 0 2px grey;
+            margin-top: 60px;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .pagination .arrow {
+            padding: 0 15px;
+            cursor: pointer;
+        }
+        
+        .transfer-btn {
+            background-color: #0052cc;
+            color: white;
+            border: none;
+            width: calc(100% - 30px);
+            padding: 12px 0;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 15px 15px 20px;
+            border-radius: 5px;
+            position: relative; /* Change from fixed to relative */
+            bottom: auto; /* Remove fixed bottom positioning */
+        }
+        
+        .bottom-spacer {
+            height: 10px;
+        }
+        .swiper-pagination {
+            position: relative;
+            bottom: auto;
+            left: auto;
+            width: 100%;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .swiper-pagination-bullet {
+            width: 8px;
+            height: 8px;
+            display: inline-block;
+            border-radius: 50%;
+            background: #ccc;
+            opacity: 0.5;
+            margin: 0 4px;
+        }
+
+        .swiper-pagination-bullet-active {
+            opacity: 1;
+            background: #0052cc;
+        }
+
+        /* Add this for standalone mode */
+        .standalone-mode {
+            /* Additional padding for standalone mode */
+            padding-top: env(safe-area-inset-top);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .standalone-mode .header {
+            /* Ensure header doesn't overlap with status bar in standalone mode */
+            padding-top: 0.1cm;
+            padding-bottom: 10px;
+            font-size: 14px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0px;
+            z-index: 1100;
+            margin-bottom: 10px; /* Add separation from tabs */
+        }
+        
+        .tabs {
+            background-color: #0052cc;
+            display: flex !important;
+        }
+
+        .standalone-mode body {
+            position: relative;
+            overflow: auto;
+            height: 100vh;
+        }
+
+        .standalone-mode .content-wrap {
+            padding-bottom: 60px; /* Push content up */
+            margin-top: 0;
+        }
+
+        .swiper-pagination {
+            margin-top: 0; /* Removed margin-top to be just after swiper container */
+            margin-bottom: 5px; /* Reduced margin */
+        }
+
+        .transfer-btn {
+            margin-top: 0; /* Removed margin-top to be just after pagination */
+            margin-bottom: 5px; /* Reduced margin */
+        }
+
+        /* Ensure the swiper container starts right after the tabs */
+        .swiper-container {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            z-index: 1;
+            margin-top: 0; /* Removed margin to reduce space */
+        }
+        .standalone-mode .header {
+            margin-bottom: 1px !important; /* Added minimal margin in standalone mode */
+        }
+
+
+
+        html {
+  touch-action: manipulation;
+  overflow-y: auto !important;
+  position: relative !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  overscroll-behavior-y: contain;
+  min-height: 100vh;
+}
+    </style>
+</head>
+<body><div class="header">
+        <span class="close" onclick="window.location.href='index.html'">×</span>
+        <div class="event-title-container">
+            <span id="eventName" class="event-title">BILLIE EILISH: HIT ME HARD AND SOFT: THE TOUR</span>
+            <span class="event-subtitle event-details" id="eventDate">Sat, Nov 22, 7:00 PM • Chase Center</span>
+        </div>
+        <span class="help">Help</span>
+    </div>
+    
+    <div class="tabs">
+        <div class="active">MY TICKETS (<span id="ticketCount">3</span>)</div>
+        <div>ADD-ONS (<span id="addonCount">0</span>)</div>
+    </div>
+    
+    <div class="swiper-container swiper-initialized swiper-horizontal swiper-ios swiper-backface-hidden">
+        <div class="swiper-wrapper" id="swiper-wrapper-eed31f89ee85fbc2" aria-live="polite"><div class="swiper-slide swiper-slide-active" role="group" aria-label="1 / 3" style="width: 430px; margin-right: 30px;">
+                    <div class="ticket-card">
+                        
+                        
+                        <div class="seat-info">
+                            <div class="seat-column">
+                                <div class="seat-label">SEC</div>
+                                <div class="seat-value">SEC GAFLR</div>
+                            </div>
+                            <div class="seat-column">
+                                <div class="seat-label">ROW</div>
+                                <div class="seat-value">22</div>
+                            </div>
+                            <div class="seat-column">
+                                <div class="seat-label">SEAT</div>
+                                <div class="seat-value">24</div>
+                            </div>
+                        </div>
+                    
+                        <div class="barcode-container">
+                            <div class="barcode">
+                                <!-- Moving blue scan line -->
+                                <div class="barcode-scan-line"></div>
+
+                                <!-- Your barcode image -->
+                                <img src="assets/mybarcode.png" class="barcode-image" />   
+                            </div>
+                            <button class="add-to-wallet">
+                                <img src="assets/apple-wallet-logo.WEBP" alt="Apple Wallet" style="width: 30px; height: 20px; margin-right: 8px;">
+                                Add to Apple Wallet
+                            </button>
+                        </div>
+                    </div>
+                </div><div class="swiper-slide swiper-slide-next" role="group" aria-label="2 / 3" style="width: 430px; margin-right: 30px;">
+                    <div class="ticket-card">
+                        
+                        
+                        <div class="seat-info">
+                            <div class="seat-column">
+                                <div class="seat-label">SEC</div>
+                                <div class="seat-value">SEC GAFLR</div>
+                            </div>
+                            <div class="seat-column">
+                                <div class="seat-label">ROW</div>
+                                <div class="seat-value">22</div>
+                            </div>
+                            <div class="seat-column">
+                                <div class="seat-label">SEAT</div>
+                                <div class="seat-value">25</div>
+                            </div>
+                        </div>
+                    
+                        <div class="barcode-container">
+                            <div class="barcode">
+                                <!-- Moving blue scan line -->
+                                <div class="barcode-scan-line"></div>
+
+                                <!-- Your barcode image -->
+                                <img src="assets/mybarcode2.png" class="barcode-image" />
+                            </div>
+                            <button class="add-to-wallet">
+                                <img src="assets/apple-wallet-logo.WEBP" alt="Apple Wallet" style="width: 30px; height: 20px; margin-right: 8px;">
+                                Add to Apple Wallet
+                            </button>
+                        </div>
+                    </div>
+                </div><div class="swiper-slide" role="group" aria-label="3 / 3" style="width: 430px; margin-right: 30px;">
+                    <div class="ticket-card">
+                        
+                        
+                        <div class="seat-info">
+                            <div class="seat-column">
+                                <div class="seat-label">SEC</div>
+                                <div class="seat-value">SEC GAFLR</div>
+                            </div>
+                            <div class="seat-column">
+                                <div class="seat-label">ROW</div>
+                                <div class="seat-value">22</div>
+                            </div>
+                            <div class="seat-column">
+                                <div class="seat-label">SEAT</div>
+                                <div class="seat-value">26</div>
+                            </div>
+                        </div>
+                    
+                        <div class="barcode-container">
+                            <div class="barcode">
+                                <!-- Moving blue scan line -->
+                                <div class="barcode-scan-line"></div>
+
+                                <!-- Your barcode image -->
+                                <img src="assets/mybarcode3.png" class="barcode-image" />
+                            </div>
+                            <button class="add-to-wallet">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                                    <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                                    <line x1="2" y1="10" x2="22" y2="10"></line>
+                                </svg>
+                                Add to Apple Wallet
+                            </button>
+                        </div>
+                    </div>
+                </div></div>
+    <span class="swiper-notification" aria-live="assertive" aria-atomic="true"></span></div>
+
+    <!-- Add pagination -->
+    <div class="swiper-pagination swiper-pagination-clickable swiper-pagination-bullets swiper-pagination-horizontal"><span class="swiper-pagination-bullet swiper-pagination-bullet-active" tabindex="0" role="button" aria-label="Go to slide 1" aria-current="true"></span><span class="swiper-pagination-bullet" tabindex="0" role="button" aria-label="Go to slide 2"></span><span class="swiper-pagination-bullet" tabindex="0" role="button" aria-label="Go to slide 3"></span></div>
+
+    <!-- Transfer button - now directly after pagination -->
+    <button class="transfer-btn" onclick="openTransferModal()">Transfer</button>
+
+    <!-- Swiper JS -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+    <script>
+        let swiper;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if running as standalone PWA
+            if (window.navigator.standalone) {
+                document.body.classList.add('standalone-mode');
+            }
+            
+            // Get ticket count from localStorage
+            const ticketCount = parseInt(localStorage.getItem('ticketCount') || '3');
+            
+            // Update ticket count display
+            const ticketCountElements = document.querySelectorAll('#ticketCount');
+            ticketCountElements.forEach(element => {
+                if (element) element.textContent = ticketCount;
+            });
+            
+            // Count enabled add-ons
+            let addonCount = parseInt(localStorage.getItem('addonCount') || '0');
+            if (!localStorage.getItem('addonCount')) {
+                // Fallback calculation if addonCount isn't set
+                addonCount = 0;
+                if (localStorage.getItem('vipEarlyEntry') === 'true') addonCount++;
+                if (localStorage.getItem('merchPackage') === 'true') addonCount++;
+                if (localStorage.getItem('premiumParking') === 'true') addonCount++;
+                localStorage.setItem('addonCount', addonCount.toString());
+            }
+            const addonCountElements = document.querySelectorAll('#addonCount');
+            addonCountElements.forEach(element => {
+                if (element) element.textContent = addonCount;
+            });
+            
+            // Load event details from localStorage
+            const eventName = localStorage.getItem('eventTitle') || 'BILLIE EILISH: HIT ME HARD AND SOFT: THE TOUR';
+            const eventDate = localStorage.getItem('eventDate') || 'Sat, Nov 22, 7:00 PM';
+            const eventVenue = localStorage.getItem('eventVenue') || 'Chase Center';
+            
+            // Update event details in header
+            document.getElementById('eventName').textContent = eventName;
+            document.getElementById('eventDate').textContent = `${eventDate} • ${eventVenue}`;
+            
+            // Generate ticket slides
+            generateTicketSlides(ticketCount);
+            
+            // Initialize Swiper
+            initSwiper();
+        });
+        
+        function generateTicketSlides(count) {
+            const swiperWrapper = document.querySelector('.swiper-wrapper');
+            if (!swiperWrapper) return;
+            
+            // Clear existing slides
+            swiperWrapper.innerHTML = '';
+            
+            // Get ticket data from localStorage
+            const section = localStorage.getItem('section') || 'SEC GAFLR';
+            const row = localStorage.getItem('row') || '22';
+            const seatStart = parseInt(localStorage.getItem('seat') || '24');
+            const eventName = localStorage.getItem('eventName') || 'Grand National Tour: Kendrick Lamar';
+            const eventDate = localStorage.getItem('eventDate') || 'Mon, Jul 28, 8:00pm - Madison Square Garden, NY';
+            
+            // Generate slides
+            for (let i = 0; i < count; i++) {
+                const seat = seatStart + i;
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+                const seatType = localStorage.getItem('seatType') || '';
+                let seatInfoHtml = '';
+                let ticketHeaderHtml = '';
+                if (seatType === 'General Admission') {
+                    ticketHeaderHtml = `<div class="ticket-header">Standard Admission</div>`;
+                    seatInfoHtml = `
+                        <div class="seat-info">
+                            <div class="seat-column">
+                                <div class="seat-label">SEC</div>
+                                <div class="seat-value">${section}</div>
+                            </div>
+                            <div class="seat-column" style="flex: 1; display: flex; align-items: center; justify-content: center;">
+                                <div class="general-admission-text">General Admission</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    ticketHeaderHtml = ''; // No header for normal ticket type
+                    seatInfoHtml = `
+                        <div class="seat-info">
+                            <div class="seat-column">
+                                <div class="seat-label">SEC</div>
+                                <div class="seat-value">${section}</div>
+                            </div>
+                            <div class="seat-column">
+                                <div class="seat-label">ROW</div>
+                                <div class="seat-value">${row}</div>
+                            </div>
+                            <div class="seat-column">
+                                <div class="seat-label">SEAT</div>
+                                <div class="seat-value">${seat}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                slide.innerHTML = `
+                    <div class="ticket-card">
+                        ${ticketHeaderHtml}
+                        ${seatInfoHtml}
+                        <div class="barcode-container">
+                            <div class="barcode">
+                                <!-- Moving blue scan line -->
+                                <div class="barcode-scan-line"></div>
+
+                                <!-- Your barcode image -->
+                                <img src="assets/mybarcode.png" class="barcode-image" />
+                            </div>
+                            <button class="add-to-wallet">
+                                <img src="assets/apple-wallet-logo.WEBP" alt="Apple Wallet" style="width: 30px; height: 20px; margin-right: 8px;">
+                                Add to Apple Wallet
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                swiperWrapper.appendChild(slide);
+            }
+            
+            // Generate QR codes after slides are added
+            setTimeout(generateAllQRCodes, 100);
+        }
+        
+        function initSwiper() {
+            swiper = new Swiper('.swiper-container', {
+                slidesPerView: 1,
+                spaceBetween: 30,
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                },
+                on: {
+                    slideChange: function() {
+                        updatePaginationText();
+                    }
+                }
+            });
+            
+            updatePaginationText();
+        }
+        
+        function updatePaginationText() {
+            const currentIndex = swiper ? swiper.activeIndex + 1 : 1;
+            const totalSlides = swiper ? swiper.slides.length : 1;
+            
+            const paginationText = document.querySelector('.pagination div:nth-child(2)');
+            if (paginationText) {
+                paginationText.textContent = `${currentIndex} of ${totalSlides}`;
+            }
+        }
+        
+        function generateAllQRCodes() {
+            const ticketCount = parseInt(localStorage.getItem('ticketCount') || '3');
+            for (let i = 0; i < ticketCount; i++) {
+                const barcodeElement = document.getElementById(`barcode-${i}`);
+                if (barcodeElement) {
+                    generateBarcode(barcodeElement);
+                }
+            }
+        }
+        
+        function generateQRCode(element) {
+            if (!element) return;
+            
+            // Clear existing content
+            element.innerHTML = '';
+            
+            // Get ticket information
+            const ticketIndex = element.getAttribute('data-ticket');
+            const seat = element.getAttribute('data-seat');
+            const section = localStorage.getItem('section') || 'SEC GAFLR';
+            const row = localStorage.getItem('row') || '22';
+            const eventName = localStorage.getItem('eventName') || 'Grand National Tour: Kendrick Lamar';
+            
+            // Create QR code data
+            const qrData = `Event: ${eventName}, Section: ${section}, Row: ${row}, Seat: ${seat}, Ticket: ${parseInt(ticketIndex) + 1}`;
+            
+            // Create QR code using qrcodejs library
+            try {
+                new QRCode(element, {
+                    text: qrData,
+                    width: 160,
+                    height: 160,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } catch (e) {
+                console.error("Error generating QR code:", e);
+                // Fallback to a simple text display
+                element.innerHTML = `<div style="width:160px;height:160px;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid #ccc;background:#fff;padding:10px;font-size:12px;">
+                    Ticket: ${parseInt(ticketIndex) + 1}<br>
+                    Section: ${section}<br>
+                    Row: ${row}<br>
+                    Seat: ${seat}
+                </div>`;
+            }
+        }
+
+        function generateBarcode(element) {
+            if (!element) return;
+
+            // Get ticket information
+            const ticketIndex = element.getAttribute('data-ticket');
+            const seat = element.getAttribute('data-seat');
+            const section = localStorage.getItem('section') || 'SEC GAFLR';
+            const row = localStorage.getItem('row') || '22';
+            const eventName = localStorage.getItem('eventName') || 'Grand National Tour: Kendrick Lamar';
+
+            // Create barcode data (you can customize this)
+            const barcodeData = `TICKET${parseInt(ticketIndex) + 1}-${section}-${row}-${seat}`;
+
+            // Generate barcode using JsBarcode
+            try {
+                JsBarcode(element, barcodeData, {
+                    format: "CODE128",
+                    width: 2,
+                    height: 80,
+                    displayValue: true
+                });
+            } catch (e) {
+                console.error("Error generating barcode:", e);
+                element.innerHTML = `<div style="width:160px;height:80px;display:flex;align-items:center;justify-content:center;text-align:center;border:1px solid #ccc;background:#fff;padding:10px;font-size:12px;">
+                    ${barcodeData}
+                </div>`;
+            }
+        }
+
+        function openTransferModal() {
+            // Instead of redirecting, we'll store a flag in localStorage
+            // to indicate that we should open the transfer modal when we get to index.html
+            localStorage.setItem('openTransferModalOnLoad', 'true');
+            
+            // Add a quick transition effect
+            document.body.style.opacity = '0.8';
+            document.body.style.transition = 'opacity 0.2s';
+            
+            // Navigate to index.html
+            setTimeout(function() {
+                window.location.href = 'index.html';
+            }, 100);
+        }
+        
+        // Prevent pinch zoom
+        document.addEventListener('touchmove', function(event) {
+            if (event.scale !== 1) {
+                // event.preventDefault();
+            }
+        }, { passive: false });
+        
+        // Prevent double-tap zoom
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                // event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, { passive: false });
+    </script>
+
+
+<script>
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('SW registered for scope:', reg.scope))
+          .catch(err => console.log('SW registration failed:', err));
+      });
+    }
+  </script>
+
+<script>
+// Nuclear option: Smarter standalone enforcement
+if (window.matchMedia('(display-mode: browser)').matches && !sessionStorage.getItem('pwaRedirected')) {
+  sessionStorage.setItem('pwaRedirected', 'true');
+  const intentUrl = `intent://${window.location.host}#Intent;package=com.android.chrome;scheme=https;end`;
+  
+  // Timeout prevents immediate reload loops
+  setTimeout(() => {
+    window.location.href = intentUrl;
+  }, 500);
+}
+</script>
+
+<script>
+// PROPER Android PWA Touch Handlers
+(function() {
+  // 1. Save original touch coordinates
+  let startY = 0;
+  
+  // 2. Improved touchmove handler
+  document.addEventListener('touchstart', (e) => {
+    startY = e.touches[0].clientY;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    // Only prevent pinch-zoom, allow scrolling
+    if (e.scale !== 1 && e.touches.length > 1) {
+      e.preventDefault();
+    }
+    
+    // Allow vertical scrolling
+    const y = e.touches[0].clientY;
+    const isVerticalScroll = Math.abs(y - startY) > Math.abs(e.touches[0].clientX - startY);
+    if (isVerticalScroll) {
+      return; // Allow the scroll
+    }
+  }, { passive: false });
+
+  // 3. Safe double-tap prevention
+  let lastTap = 0;
+  document.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastTap < 300) {
+      e.preventDefault();
+    }
+    lastTap = now;
+  }, { passive: false });
+  
+  // 4. Critical for Android PWA
+  document.documentElement.style.touchAction = 'pan-y';
+})();
+</script>
+<style>
+.general-admission-text {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    color: white;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.35); /* Adjust opacity as needed */
+    z-index: 0;
+    pointer-events: none;
+}
+body > * {
+    position: relative;
+    z-index: 1;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const bannerUrl = localStorage.getItem('bannerImage');
+    if (bannerUrl) {
+        document.body.style.backgroundImage = `url('${bannerUrl}')`;
+        document.body.style.backgroundSize = 'cover';
+        document.body.style.backgroundPosition = 'center';
+        document.body.style.backgroundRepeat = 'no-repeat';
+    }
+});
+</script>
+
+
+
+
+
+
+</body></html>

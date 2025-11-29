@@ -1,0 +1,1907 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>My Events</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            width: 100vw;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+            color: #000;
+            /* Universal safe area handling for iOS */
+            padding-top: constant(safe-area-inset-top); /* iOS 11.0-11.2 */
+            padding-top: env(safe-area-inset-top);     /* iOS 11.2+ */
+            padding-top: 20px; /* Fallback for older devices */
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: #000;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            width: 100vw;
+            box-sizing: border-box;
+            margin: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            /* Universal safe area handling for iOS */
+            padding-top: constant(safe-area-inset-top); /* iOS 11.0-11.2 */
+            padding-top: env(safe-area-inset-top);     /* iOS 11.2+ */
+            padding-top: 20px; /* Fallback for older devices */
+        }
+        .header-left,
+        .header-right {
+            width: 35px;
+            text-align: -webkit-right;
+            font-family: Arial, sans-serif;
+        }
+        .header-center {
+            flex-grow: 1;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .flag-container {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #000;
+            box-shadow: 0 0 0 2px #9e9e9e;
+            margin-left: 5px;
+            position: relative;
+            cursor: pointer;
+        }
+        .flag-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.2s ease-in-out;
+        }
+        .tabs {
+            display: flex;
+            justify-content: space-between;
+            background-color: #000;
+            position: fixed;
+            top: 50px;
+            left: 0;
+            right: 0;
+            width: 100vw;
+            box-sizing: border-box;
+            margin: 0;
+            z-index: 999;
+        }
+        .tabs::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background-color: #000; /* The continuous black line */
+        }
+        .tab {
+            color: #888;
+            font-size: 12px;
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid transparent; /* Transparent border for inactive tabs */
+            position: relative;
+            z-index: 0;
+        }
+        .tab span {
+            margin-left: 0;
+            font-weight: bold;
+        }
+        .tab.active {
+            color: #fff;
+            border-bottom: 5px solid #fff; /* White border for active tab */
+            position: relative; /* Needed for z-index to work */
+            z-index: 2; /* Ensure it's above the .tabs::after */
+            background-color: #020202; /* Make the background white for active tab */
+        }
+        .tab:first-child {
+            padding-left: 75px;
+            padding-right: 50px;
+        }
+
+        .tab:last-child {
+            padding-left: 75px;
+            padding-right: 75px;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 1px;
+            background-color: #fff;
+            z-index: 2;
+        }
+        .event-card-container {
+            padding: 15px;
+            position: relative;
+            margin-top: 75px
+        }
+        .event-card {
+            background-color: #333;
+            border-radius: 0;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            padding-bottom: 100%; /* Makes the card square */
+            height: 0;
+            margin-bottom: 15px; /* Add space between cards */
+        }
+        .event-card img {
+            position: static;
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            object-fit: scale-down;
+            vertical-align: middle;
+            margin-left: 5px;
+        }
+        .event-banner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: transparent;
+            z-index: 1;
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 50%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 0px;
+            box-sizing: border-box;
+            z-index: 2;
+        }
+        .event-date {
+            font-size: 14px;
+            font-weight: bold;
+            color: #bbb;
+            margin-bottom: 0;
+            background-color: black;
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 0;
+            width: fit-content;
+            line-height: 1.5;
+        }
+        .event-title {
+            font-size: 26px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 0px;
+            background-color: black;
+            padding: 5px 10px;
+            line-height: 1.5;
+            position: relative;
+        }
+        
+        .event-title::after {
+            display: none; /* Remove the pseudo-element underline */
+        }
+        .event-location {
+            font-size: 16px;
+            color: #bbb;
+            background-color: black;
+            padding: 20px 10px;
+            line-height: 1.0;
+            display: flex;
+            align-items: center;
+        }
+
+        .event-tickets {
+            font-size: 14px;
+            color: #fff;
+            background: none;
+            padding: 0;
+            margin-left: auto;
+            line-height: 1.5;
+            white-space: nowrap;
+            letter-spacing: 0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .ticket-count {
+            margin: 0;
+            letter-spacing: 0;
+        }
+
+        .ticket-icon {
+            width: 12px;
+            height: 12px;
+            vertical-align: middle;
+            margin-right: 2px;
+            filter: brightness(0) invert(1);
+        }
+
+        .sim-card-icon {
+            width: 18px;
+            height: 25px;
+            vertical-align: middle;
+            margin-right: 4px;
+            filter: brightness(0) invert(1);
+            display: inline-block;
+            object-fit: contain;
+        }
+
+        .event-title-second-line {
+            display: block;
+            position: relative;
+        }
+
+        .event-title-underline {
+            height: 5px;
+            background-color: #888;
+            margin-top: 5px;
+            width: calc(100% - 20px);
+            margin-left: 1px;
+            border: none;
+            display: block;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            /* When the modal is active, it will be set to display: flex; via JavaScript */
+            position: fixed; /* Stay in place */
+            z-index: 100; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            border-radius: 10px;
+            text-align: center;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            cursor: pointer;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .flag-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .flag-options img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #666;
+            box-shadow: inset 0 0 0 1px #000;
+            object-fit: cover;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .flag-options img:hover {
+            border-color: #007bff;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            background: #ffffff;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            border-top: 1px solid #e0e0e0;
+            z-index: 9999 !important;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #999;
+            text-decoration: none;
+            padding: 8px 12px;
+            transition: color 0.2s ease;
+        }
+
+        .nav-item.active {
+            color: #024ddf;
+        }
+
+        .nav-item:hover {
+            color: #024ddf;
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            object-fit: contain;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* Add padding to prevent content overlap */
+        body {
+            padding-bottom: 80px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left"></div>
+        <div class="header-center">My Events <div class="flag-container"><img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" alt="US Flag"></div></div>
+        <div class="header-right">Help</div>
+    </div>
+    <div class="tabs">
+        <div class="tab active">UPCOMING(<span>0</span>)</div>
+        <div class="tab">PAST(<span>0</span>)</div>
+    </div>
+    <div class="event-card-container">
+                    <div style="text-align: center; padding: 50px 20px; color: #666;">
+                        <p>You don't have any upcoming events.</p>
+                        <p>Tap "Help" to create a new event.</p>
+                    </div>
+                </div>
+    <div id="flagModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">×</span>
+            <h2>Select a Flag</h2>
+            <div class="flag-options">
+                <img src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg" alt="US Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/0/03/Flag_of_Italy.svg" alt="Italy Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/0/03/Flag_of_Italy.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/b/ba/Flag_of_Germany.svg" alt="Germany Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/b/ba/Flag_of_Germany.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/a/ae/Flag_of_the_United_Kingdom.svg" alt="UK Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/a/ae/Flag_of_the_United_Kingdom.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/c/cf/Flag_of_Canada.svg" alt="Canada Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/c/cf/Flag_of_Canada.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/b/b9/Flag_of_Australia.svg" alt="Australia Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/b/b9/Flag_of_Australia.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/c/c3/Flag_of_France.svg" alt="France Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/c/c3/Flag_of_France.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg" alt="Japan Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg" alt="South Korea Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg" alt="India Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/0/05/Flag_of_Brazil.svg" alt="Brazil Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/0/05/Flag_of_Brazil.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/f/f2/Flag_of_Mexico.svg" alt="Mexico Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/f/f2/Flag_of_Mexico.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/9/9a/Flag_of_Spain.svg" alt="Spain Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/9/9a/Flag_of_Spain.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/2/20/Flag_of_the_Netherlands.svg" alt="Netherlands Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/2/20/Flag_of_the_Netherlands.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/4/4c/Flag_of_Sweden.svg" alt="Sweden Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/4/4c/Flag_of_Sweden.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/d/d9/Flag_of_Norway.svg" alt="Norway Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/d/d9/Flag_of_Norway.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/9/9c/Flag_of_Denmark.svg" alt="Denmark Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/9/9c/Flag_of_Denmark.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/b/bc/Flag_of_Finland.svg" alt="Finland Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/b/bc/Flag_of_Finland.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/4/48/Flag_of_Singapore.svg" alt="Singapore Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/4/48/Flag_of_Singapore.svg">
+                <img src="https://upload.wikimedia.org/wikipedia/en/f/fa/Flag_of_the_People%27s_Republic_of_China.svg" alt="China Flag" data-flag-url="https://upload.wikimedia.org/wikipedia/en/f/fa/Flag_of_the_People%27s_Republic_of_China.svg">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const flagContainer = document.querySelector('.flag-container');
+        const flagImage = flagContainer.querySelector('img');
+        const modal = document.getElementById('flagModal');
+        const closeButton = document.querySelector('.close-button');
+        const flagOptions = document.querySelector('.flag-options');
+
+        flagContainer.addEventListener('click', () => {
+            modal.style.display = 'flex';
+        });
+
+        closeButton.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        flagOptions.addEventListener('click', (event) => {
+            if (event.target.tagName === 'IMG') {
+                const newFlagUrl = event.target.dataset.flagUrl;
+                console.log('Selected flag URL:', newFlagUrl);
+                if (newFlagUrl && flagImage) {
+                    flagImage.src = newFlagUrl;
+                    
+                    // Add animation effect
+                    flagImage.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        flagImage.style.transform = 'scale(1)';
+                    }, 150);
+                    
+                    modal.style.display = 'none';
+                } else {
+                    console.error('Flag URL or flag image not found');
+                }
+            }
+        });
+
+        // Function to extract dominant color from image
+        function extractImageColor(img, underline) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size to match image
+            canvas.width = img.naturalWidth || img.width;
+            canvas.height = img.naturalHeight || img.height;
+            
+            // Draw image on canvas
+            ctx.drawImage(img, 0, 0);
+            
+            // Get image data
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            // Sample colors from the top 30% (banner area) for better color matching
+            const bannerHeight = Math.floor(canvas.height * 0.3);
+            let r = 0, g = 0, b = 0, count = 0;
+            let nonWhitePixels = 0;
+            
+            for (let y = 0; y < bannerHeight; y += 2) {
+                for (let x = 0; x < canvas.width; x += 2) {
+                    const i = (y * canvas.width + x) * 4;
+                    if (i < data.length) {
+                        const pixelR = data[i];
+                        const pixelG = data[i + 1];
+                        const pixelB = data[i + 2];
+                        
+                        // Skip pure white pixels (RGB > 240) to avoid white backgrounds
+                        if (pixelR < 240 || pixelG < 240 || pixelB < 240) {
+                            r += pixelR;
+                            g += pixelG;
+                            b += pixelB;
+                            nonWhitePixels++;
+                        }
+                        count++;
+                    }
+                }
+            }
+            
+            // Calculate average color
+            if (nonWhitePixels > 0) {
+                r = Math.round(r / nonWhitePixels);
+                g = Math.round(g / nonWhitePixels);
+                b = Math.round(b / nonWhitePixels);
+                
+                const color = `rgb(${r}, ${g}, ${b})`;
+                
+                // Underline color is now handled by CSS
+            } else {
+                // Fallback to white if no non-white pixels found
+                const color = 'rgb(255, 255, 255)';
+                const eventTitle = underline.closest('.event-title');
+                if (eventTitle) {
+                    eventTitle.style.setProperty('--underline-color', color);
+                }
+                underline.style.backgroundColor = color;
+            }
+        }
+
+        // Function to update underlines dynamically
+        function updateUnderlines() {
+            document.querySelectorAll('.event-card').forEach(card => {
+                const title = card.querySelector('.event-title');
+                const secondLine = card.querySelector('.event-title-second-line');
+                const underline = card.querySelector('.event-title-underline');
+                const img = card.querySelector('img');
+
+                if (title && secondLine && underline && img) {
+                    // Set underline width to match the second line of the title
+                    // Since underline is now inside the secondLine span, we need to get the text width
+                    const textNode = secondLine.childNodes[0]; // Get the text node
+                    if (textNode) {
+                        // Create a temporary span to measure the text width
+                        const tempSpan = document.createElement('span');
+                        tempSpan.style.visibility = 'hidden';
+                        tempSpan.style.position = 'absolute';
+                        tempSpan.style.fontSize = window.getComputedStyle(secondLine).fontSize;
+                        tempSpan.style.fontFamily = window.getComputedStyle(secondLine).fontFamily;
+                        tempSpan.style.fontWeight = window.getComputedStyle(secondLine).fontWeight;
+                        tempSpan.textContent = textNode.textContent;
+                        document.body.appendChild(tempSpan);
+                        underline.style.width = tempSpan.offsetWidth + 'px';
+                        document.body.removeChild(tempSpan);
+                    } else {
+                        underline.style.width = secondLine.offsetWidth + 'px';
+                    }
+                    
+                    // Extract color from the event card image
+                    if (img.complete) {
+                        extractImageColor(img, underline);
+                    } else {
+                        img.onload = function() {
+                            extractImageColor(img, underline);
+                        };
+                    }
+                }
+            });
+        }
+
+        // Test function to verify underline behavior with different paragraph counts
+        function testUnderlineBehavior() {
+            console.log('=== TESTING UNDERLINE BEHAVIOR ===');
+            console.log('Testing that underline matches TEXT LENGTH of the last paragraph');
+            
+            // Test 1: Single paragraph - underline should match "Single Paragraph Title"
+            const test1 = document.createElement('div');
+            test1.className = 'event-title';
+            test1.innerHTML = '<span>Single Paragraph Title</span>';
+            document.body.appendChild(test1);
+            
+            const paragraphs1 = test1.querySelectorAll('p, .event-title-second-line, span');
+            const lastParagraph1 = paragraphs1[paragraphs1.length - 1];
+            console.log('Test 1 - 1 paragraph: underline should match text length of "', lastParagraph1.textContent.trim(), '"');
+            
+            // Test 2: Four paragraphs - underline should match "Fourth Paragraph" (the 4th one)
+            const test2 = document.createElement('div');
+            test2.className = 'event-title';
+            test2.innerHTML = `
+                <span>First Paragraph</span>
+                <span>Second Paragraph</span>
+                <span>Third Paragraph</span>
+                <span>Fourth Paragraph</span>
+            `;
+            document.body.appendChild(test2);
+            
+            const paragraphs2 = test2.querySelectorAll('p, .event-title-second-line, span');
+            const lastParagraph2 = paragraphs2[paragraphs2.length - 1];
+            console.log('Test 2 - 4 paragraphs: underline should match text length of "', lastParagraph2.textContent.trim(), '" (the 4th paragraph)');
+            
+            // Test 3: Three paragraphs - underline should match "Third Paragraph" (the 3rd one)
+            const test3 = document.createElement('div');
+            test3.className = 'event-title';
+            test3.innerHTML = `
+                <span>First Paragraph</span>
+                <span>Second Paragraph</span>
+                <span>Third Paragraph</span>
+            `;
+            document.body.appendChild(test3);
+            
+            const paragraphs3 = test3.querySelectorAll('p, .event-title-second-line, span');
+            const lastParagraph3 = paragraphs3[paragraphs3.length - 1];
+            console.log('Test 3 - 3 paragraphs: underline should match text length of "', lastParagraph3.textContent.trim(), '" (the 3rd paragraph)');
+            
+            // Test 4: "Suffs (Touring)" - test the actual event title
+            const test4 = document.createElement('div');
+            test4.className = 'event-title';
+            test4.innerHTML = '<span>Suffs (Touring)</span>';
+            document.body.appendChild(test4);
+            
+            const paragraphs4 = test4.querySelectorAll('p, .event-title-second-line, span');
+            const lastParagraph4 = paragraphs4[paragraphs4.length - 1];
+            console.log('Test 4 - "Suffs (Touring)": found', paragraphs4.length, 'paragraphs, last one is "', lastParagraph4.textContent.trim(), '"');
+            
+            // Clean up test elements
+            document.body.removeChild(test1);
+            document.body.removeChild(test2);
+            document.body.removeChild(test3);
+            document.body.removeChild(test4);
+            
+            console.log('=== TEST COMPLETE ===');
+            console.log('Rule: If 1 paragraph → match 1st, If 2 paragraphs → match 2nd, If 3 paragraphs → match 3rd, etc.');
+            console.log('Run updateEventTitleUnderlines() to see actual underline measurements');
+        }
+
+        // Debug function to check actual event title structure
+        function debugEventTitles() {
+            console.log('=== DEBUGGING ACTUAL EVENT TITLES ===');
+            document.querySelectorAll('.event-title').forEach((title, index) => {
+                console.log(`Event ${index + 1}:`);
+                console.log('  Full HTML:', title.innerHTML);
+                console.log('  Text content:', title.textContent.trim());
+                
+                const paragraphs = title.querySelectorAll('p, .event-title-second-line, span');
+                console.log(`  Found ${paragraphs.length} paragraph elements:`);
+                paragraphs.forEach((p, i) => {
+                    console.log(`    Paragraph ${i + 1}: "${p.textContent.trim()}"`);
+                });
+                
+                if (paragraphs.length > 0) {
+                    const lastParagraph = paragraphs[paragraphs.length - 1];
+                    console.log(`  Last paragraph: "${lastParagraph.textContent.trim()}"`);
+                }
+                console.log('---');
+            });
+        }
+
+        // Function to update event title underlines to match the text length of the last line
+        function updateEventTitleUnderlines() {
+            console.log('=== UPDATING EVENT TITLE UNDERLINES ===');
+            document.querySelectorAll('.event-title').forEach((title, index) => {
+                console.log(`Processing title ${index + 1}:`, title.textContent);
+                
+                // Get all text content
+                const fullText = title.textContent.trim();
+                
+                // Find the last line by looking at the HTML structure
+                let lastLineText = '';
+                let lastLineElement = title;
+                
+                // Get all spans and divs that could contain text lines
+                const allTextElements = title.querySelectorAll('span, div, p');
+                const textLines = [];
+                
+                // Collect all text content from elements
+                allTextElements.forEach(element => {
+                    const text = element.textContent.trim();
+                    if (text && !element.querySelector('*')) { // Only leaf elements with text
+                        textLines.push({
+                            element: element,
+                            text: text
+                        });
+                    }
+                });
+                
+                // If we found text lines, use the last one
+                if (textLines.length > 0) {
+                    const lastLine = textLines[textLines.length - 1];
+                    lastLineText = lastLine.text;
+                    lastLineElement = lastLine.element;
+                    console.log(`Found ${textLines.length} text lines, using last: "${lastLineText}"`);
+                } else {
+                    // No text lines found, use the full title
+                    lastLineText = fullText;
+                    console.log(`No text lines found, using full title: "${lastLineText}"`);
+                }
+                
+                // Special handling for the current HTML structure
+                // Check if there's a second line span with actual text
+                const secondLineSpan = title.querySelector('.event-title-second-line');
+                if (secondLineSpan) {
+                    const secondLineText = secondLineSpan.textContent.trim();
+                    if (secondLineText) {
+                        lastLineText = secondLineText;
+                        lastLineElement = secondLineSpan;
+                        console.log(`Using second line span text: "${lastLineText}"`);
+                    }
+                }
+                
+                // Create a temporary element to measure the text width
+                const tempElement = document.createElement('span');
+                tempElement.style.visibility = 'hidden';
+                tempElement.style.position = 'absolute';
+                tempElement.style.fontSize = window.getComputedStyle(lastLineElement).fontSize;
+                tempElement.style.fontFamily = window.getComputedStyle(lastLineElement).fontFamily;
+                tempElement.style.fontWeight = window.getComputedStyle(lastLineElement).fontWeight;
+                tempElement.style.letterSpacing = window.getComputedStyle(lastLineElement).letterSpacing;
+                tempElement.style.textTransform = window.getComputedStyle(lastLineElement).textTransform;
+                tempElement.style.whiteSpace = 'nowrap'; // Prevent text wrapping
+                tempElement.style.display = 'inline-block'; // Ensure proper width calculation
+                tempElement.textContent = lastLineText; // Only the text content
+                document.body.appendChild(tempElement);
+                
+                const textWidth = tempElement.offsetWidth;
+                document.body.removeChild(tempElement);
+                
+                // Set the underline width to match the text length of the last line
+                title.style.setProperty('--underline-width', textWidth + 'px');
+                
+                console.log(`✅ Title ${index + 1}: Underline width set to ${textWidth}px for text: "${lastLineText}"`);
+            });
+        }
+
+        // Function to extract color from banner area and set underline color
+        function setBannerColorForUnderline() {
+            console.log('=== DEBUG: Starting color extraction ===');
+            const eventCards = document.querySelectorAll('.event-card');
+            console.log(`Found ${eventCards.length} event cards`);
+            
+            // Clear any existing styles first
+            const existingStyles = document.querySelectorAll('style[data-underline-color]');
+            existingStyles.forEach(style => style.remove());
+            
+            eventCards.forEach((card, index) => {
+                const eventTitle = card.querySelector('.event-title');
+                const img = card.querySelector('img');
+                
+                console.log(`Processing event card ${index + 1}:`, eventTitle, img);
+                
+                if (eventTitle && img) {
+                    console.log(`Image src for card ${index + 1}: ${img.src}`);
+                    console.log(`Image complete: ${img.complete}, naturalWidth: ${img.naturalWidth}, naturalHeight: ${img.naturalHeight}`);
+                    
+                    // Clear any existing color first
+                    eventTitle.style.removeProperty('--underline-color');
+                    
+                    // Function to attempt color extraction
+                    const attemptColorExtraction = (imageElement) => {
+                        try {
+                            console.log(`Attempting color extraction for card ${index + 1} with image:`, imageElement.src);
+                            extractColorFromLoadedImage(imageElement, eventTitle, index + 1, card);
+                        } catch (error) {
+                            console.error(`Error in color extraction for card ${index + 1}:`, error);
+                            setFallbackColor(eventTitle, index + 1, card);
+                        }
+                    };
+                    
+                    // Wait a bit to ensure image is loaded
+                    setTimeout(() => {
+                        if (img.complete && img.naturalWidth > 0) {
+                            console.log(`Using existing loaded image for card ${index + 1}`);
+                            attemptColorExtraction(img);
+                        } else {
+                            console.log(`Image not ready, creating new image for card ${index + 1}`);
+                            // Create a new image for loading
+                            const tempImg = new Image();
+                            tempImg.crossOrigin = 'anonymous';
+                            
+                            tempImg.onload = function() {
+                                console.log(`Image loaded successfully for card ${index + 1}, dimensions: ${tempImg.naturalWidth}x${tempImg.naturalHeight}`);
+                                attemptColorExtraction(tempImg);
+                            };
+                            
+                            tempImg.onerror = function() {
+                                console.error(`Failed to load image for card ${index + 1}:`, img.src);
+                                // Use fallback colors based on card index
+                                setFallbackColor(eventTitle, index + 1, card);
+                            };
+                            
+                            tempImg.src = img.src;
+                        }
+                    }, index * 300); // Increased stagger time
+                } else {
+                    console.log(`Missing elements for card ${index + 1}:`, {eventTitle, img});
+                }
+            });
+        }
+        
+        // Helper function to extract color from a loaded image
+        function extractColorFromLoadedImage(img, eventTitle, cardIndex, card) {
+            try {
+                // Check if image is from external domain (CORS issue)
+                const imgUrl = new URL(img.src);
+                const currentDomain = window.location.hostname;
+                
+                if (imgUrl.hostname !== currentDomain && imgUrl.hostname !== 'localhost' && imgUrl.hostname !== '127.0.0.1') {
+                    console.log(`Image from external domain detected: ${imgUrl.hostname}, using alternative color extraction method`);
+                    
+                    // For external images, try to extract color using a different approach
+                    // We'll use a server-side proxy or try to get the image data differently
+                    tryAlternativeColorExtraction(img.src, eventTitle, cardIndex, card);
+                    return;
+                }
+                
+                // For same-origin images, proceed with normal extraction
+                extractColorFromImageElement(img, eventTitle, cardIndex, card);
+                
+            } catch (error) {
+                console.error(`Error in color extraction setup for card ${cardIndex}:`, error);
+                setFallbackColor(eventTitle, cardIndex, card);
+            }
+        }
+        
+        // Alternative color extraction for external images using fetch + blob
+        async function tryAlternativeColorExtraction(imageUrl, eventTitle, cardIndex, card) {
+            try {
+                console.log(`Trying alternative color extraction for card ${cardIndex} with URL: ${imageUrl}`);
+                
+                // Try to fetch the image as a blob and create an object URL
+                const response = await fetch(imageUrl, {
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const blob = await response.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                
+                const proxyImg = new Image();
+                proxyImg.crossOrigin = 'anonymous';
+                
+                proxyImg.onload = function() {
+                    console.log(`Alternative method loaded for card ${cardIndex}, dimensions: ${proxyImg.naturalWidth}x${proxyImg.naturalHeight}`);
+                    extractColorFromImageElement(proxyImg, eventTitle, cardIndex, card);
+                    // Clean up the object URL
+                    URL.revokeObjectURL(objectUrl);
+                };
+                
+                proxyImg.onerror = function() {
+                    console.error(`Alternative method failed for card ${cardIndex}, using fallback color`);
+                    URL.revokeObjectURL(objectUrl);
+                    setFallbackColor(eventTitle, cardIndex, card);
+                };
+                
+                proxyImg.src = objectUrl;
+                
+            } catch (error) {
+                console.error(`Alternative color extraction failed for card ${cardIndex}:`, error);
+                
+                // If all else fails, try to extract color from the image URL itself
+                // This is a fallback that tries to guess colors based on common patterns
+                tryUrlBasedColorExtraction(imageUrl, eventTitle, cardIndex, card);
+            }
+        }
+        
+        // Fallback color extraction based on image URL patterns
+        function tryUrlBasedColorExtraction(imageUrl, eventTitle, cardIndex, card) {
+            console.log(`Trying URL-based color extraction for card ${cardIndex}`);
+            
+            // Instead of using hardcoded colors, try to extract from the card background
+            // This ensures consistency with manually added images
+            setFallbackColor(eventTitle, cardIndex, card);
+        }
+        
+        // Helper function to actually extract color from image element
+        function extractColorFromImageElement(img, eventTitle, cardIndex, card) {
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Set canvas size to match image
+                canvas.width = img.naturalWidth || img.width;
+                canvas.height = img.naturalHeight || img.height;
+                
+                console.log(`Canvas size for card ${cardIndex}: ${canvas.width}x${canvas.height}`);
+                
+                // Draw image on canvas
+                ctx.drawImage(img, 0, 0);
+                
+                // Get image data
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+                
+                // Sample colors from multiple areas for better color detection
+                const bannerHeight = Math.floor(canvas.height * 0.4); // Increased to 40% for better coverage
+                const centerStart = Math.floor(canvas.width * 0.2);
+                const centerEnd = Math.floor(canvas.width * 0.8);
+                
+                let r = 0, g = 0, b = 0, count = 0;
+                let nonWhitePixels = 0;
+                let nonBlackPixels = 0;
+                
+                console.log(`Sampling from top ${bannerHeight} pixels, center area ${centerStart}-${centerEnd} for card ${cardIndex}`);
+                
+                // Sample from multiple areas: top-left, top-center, top-right
+                const sampleAreas = [
+                    { startX: 0, endX: Math.floor(canvas.width * 0.33), startY: 0, endY: bannerHeight },
+                    { startX: Math.floor(canvas.width * 0.33), endX: Math.floor(canvas.width * 0.66), startY: 0, endY: bannerHeight },
+                    { startX: Math.floor(canvas.width * 0.66), endX: canvas.width, startY: 0, endY: bannerHeight }
+                ];
+                
+                sampleAreas.forEach((area, areaIndex) => {
+                    for (let y = area.startY; y < area.endY; y += 3) {
+                        for (let x = area.startX; x < area.endX; x += 3) {
+                            const i = (y * canvas.width + x) * 4;
+                            if (i < data.length) {
+                                const pixelR = data[i];
+                                const pixelG = data[i + 1];
+                                const pixelB = data[i + 2];
+                                
+                                // Skip very white pixels (RGB > 250) and very black pixels (RGB < 10)
+                                if ((pixelR < 250 || pixelG < 250 || pixelB < 250) && 
+                                    (pixelR > 10 || pixelG > 10 || pixelB > 10)) {
+                                    r += pixelR;
+                                    g += pixelG;
+                                    b += pixelB;
+                                    nonWhitePixels++;
+                                    
+                                    if (pixelR > 20 || pixelG > 20 || pixelB > 20) {
+                                        nonBlackPixels++;
+                                    }
+                                }
+                                count++;
+                            }
+                        }
+                    }
+                });
+                
+                // Calculate average color
+                if (nonWhitePixels > 0) {
+                    r = Math.round(r / nonWhitePixels);
+                    g = Math.round(g / nonWhitePixels);
+                    b = Math.round(b / nonWhitePixels);
+                    
+                    // Boost saturation slightly for more vibrant colors
+                    const boostFactor = 1.1;
+                    r = Math.min(255, Math.round(r * boostFactor));
+                    g = Math.min(255, Math.round(g * boostFactor));
+                    b = Math.min(255, Math.round(b * boostFactor));
+                    
+                    const color = `rgb(${r}, ${g}, ${b})`;
+                    console.log(`Extracted color for card ${cardIndex}: ${color} (from ${nonWhitePixels} valid pixels, ${nonBlackPixels} non-black pixels)`);
+                    
+                    // Set the underline color using CSS custom property
+                    eventTitle.style.setProperty('--underline-color', color);
+                    
+                    // Also try direct CSS modification as fallback - use a more specific selector
+                    const cardId = `event-card-${cardIndex}`;
+                    card.id = cardId;
+                    const style = document.createElement('style');
+                    style.setAttribute('data-underline-color', cardIndex);
+                    style.textContent = `#${cardId} .event-title::after { background-color: ${color} !important; }`;
+                    document.head.appendChild(style);
+                    
+                    // Verify it was set
+                    const computedColor = getComputedStyle(eventTitle).getPropertyValue('--underline-color');
+                    console.log(`Computed color after setting: ${computedColor}`);
+                    console.log(`Applied direct CSS rule for card ${cardIndex} with ID: ${cardId}`);
+                } else {
+                    console.log(`No valid pixels found for card ${cardIndex}, using fallback`);
+                    setFallbackColor(eventTitle, cardIndex, card);
+                }
+            } catch (error) {
+                console.error(`Error extracting color for card ${cardIndex}:`, error);
+                setFallbackColor(eventTitle, cardIndex, card);
+            }
+        }
+        
+        // Fallback function to set colors when image loading fails
+        function setFallbackColor(eventTitle, cardIndex, card) {
+            console.log(`Attempting to extract background color from card ${cardIndex} for fallback`);
+            
+            // Try to extract color from the actual image URL using a different approach
+            const img = card.querySelector('img');
+            if (img && img.src) {
+                console.log(`Trying to extract color from actual image URL: ${img.src}`);
+                
+                // Try using a proxy or different method to load the image
+                tryImageColorExtraction(img.src, eventTitle, cardIndex, card);
+                return;
+            }
+            
+            // If no image found, try to extract from the card's background image or background color
+            let extractedColor = null;
+            
+            if (card) {
+                // First, try to get the computed background color
+                const computedStyle = window.getComputedStyle(card);
+                const backgroundColor = computedStyle.backgroundColor;
+                
+                // If we have a solid background color, use it
+                if (backgroundColor && backgroundColor !== 'rgba(0, 0, 0, 0)' && backgroundColor !== 'transparent') {
+                    extractedColor = backgroundColor;
+                    console.log(`Using card background color for card ${cardIndex}: ${extractedColor}`);
+                } else {
+                    // Try to extract from background image if present
+                    const backgroundImage = computedStyle.backgroundImage;
+                    if (backgroundImage && backgroundImage !== 'none') {
+                        console.log(`Card ${cardIndex} has background image, attempting to extract color from it`);
+                        // Create a temporary image to extract color from background
+                        const tempImg = new Image();
+                        tempImg.crossOrigin = 'anonymous';
+                        
+                        tempImg.onload = function() {
+                            console.log(`Background image loaded for card ${cardIndex}, extracting color`);
+                            extractColorFromImageElement(tempImg, eventTitle, cardIndex, card);
+                        };
+                        
+                        tempImg.onerror = function() {
+                            console.log(`Background image failed to load for card ${cardIndex}, using default fallback`);
+                            useDefaultFallbackColor(eventTitle, cardIndex, card);
+                        };
+                        
+                        // Extract URL from background-image CSS property
+                        const urlMatch = backgroundImage.match(/url\(['"]?([^'"]+)['"]?\)/);
+                        if (urlMatch && urlMatch[1]) {
+                            tempImg.src = urlMatch[1];
+                        } else {
+                            useDefaultFallbackColor(eventTitle, cardIndex, card);
+                        }
+                        return; // Exit early since we're handling this asynchronously
+                    }
+                }
+            }
+            
+            // If we extracted a color, use it; otherwise use default fallback
+            if (extractedColor) {
+                applyColorToUnderline(eventTitle, cardIndex, card, extractedColor);
+            } else {
+                useDefaultFallbackColor(eventTitle, cardIndex, card);
+            }
+        }
+        
+        // New function to try different methods of image color extraction
+        function tryImageColorExtraction(imageUrl, eventTitle, cardIndex, card) {
+            console.log(`Trying multiple methods to extract color from: ${imageUrl}`);
+            
+            // Method 1: Try with no-cors mode
+            const img1 = new Image();
+            img1.crossOrigin = 'anonymous';
+            img1.onload = function() {
+                console.log(`Method 1 (no-cors) succeeded for card ${cardIndex}`);
+                extractColorFromImageElement(img1, eventTitle, cardIndex, card);
+            };
+            img1.onerror = function() {
+                console.log(`Method 1 failed, trying Method 2`);
+                // Method 2: Try with different CORS settings
+                const img2 = new Image();
+                img2.crossOrigin = 'use-credentials';
+                img2.onload = function() {
+                    console.log(`Method 2 (use-credentials) succeeded for card ${cardIndex}`);
+                    extractColorFromImageElement(img2, eventTitle, cardIndex, card);
+                };
+                img2.onerror = function() {
+                    console.log(`Method 2 failed, trying Method 3`);
+                    // Method 3: Try without CORS
+                    const img3 = new Image();
+                    img3.onload = function() {
+                        console.log(`Method 3 (no CORS) succeeded for card ${cardIndex}`);
+                        extractColorFromImageElement(img3, eventTitle, cardIndex, card);
+                    };
+                    img3.onerror = function() {
+                        console.log(`All methods failed, using color prediction`);
+                        // Method 4: Try to predict color based on image URL or use a smart fallback
+                        predictColorFromUrl(imageUrl, eventTitle, cardIndex, card);
+                    };
+                    img3.src = imageUrl;
+                };
+                img2.src = imageUrl;
+            };
+            img1.src = imageUrl;
+        }
+        
+        // Function to predict color based on image URL or use smart fallback
+        function predictColorFromUrl(imageUrl, eventTitle, cardIndex, card) {
+            console.log(`Predicting color from URL: ${imageUrl}`);
+            
+            // Try to extract color hints from the URL
+            let predictedColor = null;
+            
+            // Check for common color patterns in URLs
+            if (imageUrl.includes('concert') || imageUrl.includes('music')) {
+                predictedColor = 'rgb(59, 130, 246)'; // Blue
+            } else if (imageUrl.includes('sports') || imageUrl.includes('stadium')) {
+                predictedColor = 'rgb(34, 197, 94)'; // Green
+            } else if (imageUrl.includes('theater') || imageUrl.includes('broadway')) {
+                predictedColor = 'rgb(168, 85, 247)'; // Purple
+            } else if (imageUrl.includes('ticketmaster') || imageUrl.includes('ticketm.net')) {
+                // For Ticketmaster, try to use a more appropriate color based on event type
+                predictedColor = 'rgb(220, 38, 38)'; // Red (Ticketmaster brand color)
+            } else {
+                // Use a more sophisticated color prediction based on URL hash
+                const urlHash = imageUrl.split('').reduce((a, b) => {
+                    a = ((a << 5) - a) + b.charCodeAt(0);
+                    return a & a;
+                }, 0);
+                
+                // Generate a color based on the URL hash
+                const hue = Math.abs(urlHash) % 360;
+                const saturation = 70 + (Math.abs(urlHash) % 30); // 70-100%
+                const lightness = 50 + (Math.abs(urlHash) % 20); // 50-70%
+                
+                predictedColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                console.log(`Generated color from URL hash: ${predictedColor}`);
+            }
+            
+            if (predictedColor) {
+                console.log(`Using predicted color for card ${cardIndex}: ${predictedColor}`);
+                applyColorToUnderline(eventTitle, cardIndex, card, predictedColor);
+            } else {
+                console.log(`No color prediction possible, using default fallback`);
+                useDefaultFallbackColor(eventTitle, cardIndex, card);
+            }
+        }
+        
+        function useDefaultFallbackColor(eventTitle, cardIndex, card) {
+            const fallbackColors = [
+                'rgb(255, 99, 132)',   // Pink
+                'rgb(54, 162, 235)',   // Blue
+                'rgb(255, 205, 86)',   // Yellow
+                'rgb(75, 192, 192)',   // Teal
+                'rgb(153, 102, 255)',  // Purple
+                'rgb(255, 159, 64)',   // Orange
+            ];
+            
+            const color = fallbackColors[(cardIndex - 1) % fallbackColors.length];
+            console.log(`Using default fallback color for card ${cardIndex}: ${color}`);
+            applyColorToUnderline(eventTitle, cardIndex, card, color);
+        }
+        
+        function applyColorToUnderline(eventTitle, cardIndex, card, color) {
+            // Set the underline color using CSS custom property
+            eventTitle.style.setProperty('--underline-color', color);
+            
+            // Also try direct CSS modification as fallback - use unique ID
+            const cardId = `event-card-${cardIndex}`;
+            if (card) card.id = cardId;
+            const style = document.createElement('style');
+            style.setAttribute('data-underline-color', cardIndex);
+            style.textContent = `#${cardId} .event-title::after { background-color: ${color} !important; }`;
+            document.head.appendChild(style);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial underline setup
+            updateUnderlines();
+            updateEventTitleUnderlines();
+            
+            // Wait for images to load before extracting colors
+            setTimeout(() => {
+                console.log('Starting delayed color extraction...');
+                setBannerColorForUnderline();
+            }, 1000);
+        });
+
+        // Also run when window is fully loaded (including images)
+        window.addEventListener('load', () => {
+            console.log('Window fully loaded, re-extracting colors...');
+            setTimeout(() => {
+                setBannerColorForUnderline();
+            }, 500);
+        });
+
+        // Re-run color extraction when new events are added
+        function reExtractColors() {
+            console.log('Re-extracting colors for all cards');
+            setBannerColorForUnderline();
+        }
+
+        // Make the function globally available
+        window.reExtractColors = reExtractColors;
+
+        // Update underlines on window resize to handle responsive changes
+        window.addEventListener('resize', () => {
+            updateUnderlines();
+            updateEventTitleUnderlines();
+        });
+
+        // Make updateUnderlines available globally for dynamic updates
+        window.updateEventUnderlines = updateUnderlines;
+        window.updateEventTitleUnderlines = updateEventTitleUnderlines;
+        
+        // Add manual color extraction function for testing
+        window.manualColorExtraction = function() {
+            console.log('=== MANUAL COLOR EXTRACTION TRIGGERED ===');
+            setBannerColorForUnderline();
+        };
+        
+        // Add function to test specific event card
+        window.testEventCardColor = function(cardIndex = 0) {
+            const eventCards = document.querySelectorAll('.event-card');
+            if (eventCards[cardIndex]) {
+                const card = eventCards[cardIndex];
+                const eventTitle = card.querySelector('.event-title');
+                const img = card.querySelector('img');
+                const underline = card.querySelector('.event-title-underline');
+                
+                console.log(`Testing event card ${cardIndex}:`);
+                console.log('Card:', card);
+                console.log('Title:', eventTitle);
+                console.log('Image:', img);
+                console.log('Underline:', underline);
+                console.log('Image src:', img?.src);
+                console.log('Image complete:', img?.complete);
+                console.log('Image dimensions:', img?.naturalWidth, 'x', img?.naturalHeight);
+                
+                if (img && eventTitle) {
+                    extractColorFromLoadedImage(img, eventTitle, cardIndex + 1, card);
+                }
+            } else {
+                console.log(`Event card ${cardIndex} not found. Available cards: ${eventCards.length}`);
+            }
+        };
+    </script>
+
+    <script>
+        // Event Management JavaScript from public folder
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if running as standalone PWA
+            if (window.navigator.standalone) {
+                document.body.classList.add('standalone-mode');
+            }
+            
+            // Tab switching functionality
+            const tabs = document.querySelectorAll('.tab');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    if (this.textContent.includes('PAST')) {
+                        loadPastEvents();
+                    } else {
+                        loadUpcomingEvents();
+                    }
+                });
+            });
+            
+            // Initialize with upcoming events
+            loadTicketData();
+            loadUpcomingEvents();
+            
+            // Set help button link
+            const helpBtn = document.querySelector('.header-right');
+            if (helpBtn) {
+                helpBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.location.href = 'for-you.html';
+                });
+            }
+        });
+
+        function loadTicketData() {
+            // Get all events from localStorage
+            const events = JSON.parse(localStorage.getItem('events') || '[]');
+            
+            // Count upcoming and past events
+            const now = new Date();
+            let upcomingCount = 0;
+            let pastCount = 0;
+            
+            events.forEach(event => {
+                const eventDate = getEventDateForComparison(event);
+                const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+                const diffMs = now - eventDate;
+                const diffHours = diffMs / (1000 * 60 * 60);
+                
+                console.log('Event:', event.title);
+                console.log('Event date string:', event.date);
+                console.log('Parsed event date:', eventDate);
+                console.log('Event date year:', eventDate.getFullYear());
+                console.log('Current year:', now.getFullYear());
+                console.log('Is upcoming:', eventDateOnly >= nowDateOnly);
+                
+                // Consider event upcoming if eventDate is today or in future
+                if (eventDateOnly >= nowDateOnly) {
+                    upcomingCount++;
+                } else {
+                    pastCount++;
+                }
+            });
+            
+            // Update counts in tabs
+            const upcomingCountEl = document.querySelector('.tab.active span');
+            const pastCountEl = document.querySelector('.tab:not(.active) span');
+            if (upcomingCountEl) upcomingCountEl.textContent = upcomingCount;
+            if (pastCountEl) pastCountEl.textContent = pastCount;
+        }
+
+        function loadUpcomingEvents() {
+            const container = document.querySelector('.event-card-container');
+            if (!container) return;
+            
+            container.innerHTML = ''; // Clear container
+            
+            // Get all events from localStorage
+            const events = JSON.parse(localStorage.getItem('events') || '[]');
+            
+            // Filter for upcoming events
+            const now = new Date();
+            const upcomingEvents = events.filter(event => {
+                const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                let eventDate = getEventDateForComparison(event);
+                const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+                
+                console.log('Upcoming filter - Event:', event.title);
+                console.log('Upcoming filter - Now:', now);
+                console.log('Upcoming filter - Now date only:', nowDateOnly);
+                console.log('Upcoming filter - Event date:', eventDate);
+                console.log('Upcoming filter - Event date only:', eventDateOnly);
+                console.log('Upcoming filter - Is upcoming:', eventDateOnly >= nowDateOnly);
+                
+                // Consider event upcoming if eventDate is today or in future
+                return eventDateOnly >= nowDateOnly;
+            });
+            
+            // Sort by date (closest first)
+            upcomingEvents.sort((a, b) => {
+                const dateA = getEventDateForComparison(a);
+                const dateB = getEventDateForComparison(b);
+                return dateA - dateB;
+            });
+            
+            // Display events or show message if none
+            if (upcomingEvents.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 50px 20px; color: #666;">
+                        <p>You don't have any upcoming events.</p>
+                        <p>Tap "Help" to create a new event.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Create event cards
+            upcomingEvents.forEach(event => {
+                const eventCard = createEventCard(event);
+                container.appendChild(eventCard);
+            });
+            
+            // Update underlines for new cards
+            updateEventTitleUnderlines();
+            // Extract colors for new cards
+            setTimeout(() => setBannerColorForUnderline(), 200);
+        }
+
+        function loadPastEvents() {
+            const container = document.querySelector('.event-card-container');
+            if (!container) return;
+            
+            container.innerHTML = ''; // Clear container
+            
+            // Get all events from localStorage
+            const events = JSON.parse(localStorage.getItem('events') || '[]');
+            
+            // Filter for past events
+            const now = new Date();
+            const pastEvents = events.filter(event => {
+                const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                let eventDate = getEventDateForComparison(event);
+                const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+                
+                console.log('Past filter - Event:', event.title);
+                console.log('Past filter - Now:', now);
+                console.log('Past filter - Now date only:', nowDateOnly);
+                console.log('Past filter - Event date:', eventDate);
+                console.log('Past filter - Event date only:', eventDateOnly);
+                console.log('Past filter - Is past:', eventDateOnly < nowDateOnly);
+                
+                // Consider event past if eventDate is before today
+                return eventDateOnly < nowDateOnly;
+            });
+            
+            // Sort by date (most recent first)
+            pastEvents.sort((a, b) => {
+                const dateA = getEventDateForComparison(a);
+                const dateB = getEventDateForComparison(b);
+                return dateB - dateA;
+            });
+            
+            // Display events or show message if none
+            if (pastEvents.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 50px 20px; color: #666;">
+                        <p>You don't have any past events.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Create event cards
+            pastEvents.forEach(event => {
+                const eventCard = createEventCard(event);
+                container.appendChild(eventCard);
+            });
+            
+            // Update underlines for new cards
+            updateEventTitleUnderlines();
+            // Extract colors for new cards
+            setTimeout(() => setBannerColorForUnderline(), 200);
+        }
+
+        function createEventCard(event) {
+            const card = document.createElement('div');
+            card.className = 'event-card';
+            card.setAttribute('data-event-id', event.id);
+            
+            // Split long titles into two lines for better display
+            function splitTitle(title) {
+                const words = title.split(' ');
+                if (words.length <= 4) {
+                    // Short title, no need to split - but still include underline div
+                    return `<div class="event-title">${title} <span class="event-title-second-line"><div class="event-title-underline"></div></span></div>`;
+                }
+                
+                // Split roughly in the middle
+                const midPoint = Math.ceil(words.length / 2);
+                const firstLine = words.slice(0, midPoint).join(' ');
+                const secondLine = words.slice(midPoint).join(' ');
+                
+                return `<div class="event-title">${firstLine} <span class="event-title-second-line">${secondLine}<div class="event-title-underline"></div></span></div>`;
+            }
+            
+            // Create the event card HTML structure matching the existing design
+            card.innerHTML = `
+                <img src="${event.imageUrl || 'https://i.imgur.com/Z70B02Q.jpeg'}" alt="Event Image">
+                <div class="event-banner" style="background-image: url('${event.imageUrl || 'https://i.imgur.com/Z70B02Q.jpeg'}'); background-size: cover; background-position: center;"></div>
+                <div class="overlay">
+                    <div class="event-date">${getDisplayDate(event)}</div>
+                    ${splitTitle(event.title)}
+                    <div class="event-location">${event.venue}${event.venueLocation ? ', ' + event.venueLocation : ''} <span class="event-tickets"><div class="ticket-count"><img src="assets/sim-card.png" alt="Sim Card" class="sim-card-icon">x${event.ticketCount || 1}</div></span></div>
+                </div>
+            `;
+            
+            // Add click event to navigate to ticket details
+            card.addEventListener('click', function() {
+                // Set this as the active event
+                localStorage.setItem('activeEvent', event.id);
+                
+                // Also set all individual properties for index.html to use
+                localStorage.setItem('eventTitle', event.title);
+                localStorage.setItem('eventDate', event.date);
+                localStorage.setItem('eventVenue', event.venue);
+                localStorage.setItem('ticketType', event.ticketType);
+                localStorage.setItem('section', event.section);
+                localStorage.setItem('row', event.row);
+                localStorage.setItem('seat', event.seat);
+                localStorage.setItem('ticketCount', event.ticketCount);
+                localStorage.setItem('seatType', event.seatType);
+                localStorage.setItem('bannerImage', event.imageUrl);
+                localStorage.setItem('ticketPrice', event.ticketPrice || '89.50');
+                
+                // Store camping-specific data if it's a camping event
+                if (event.isCampingEvent) {
+                    console.log('Storing camping event data for:', event.id);
+                    localStorage.setItem('isCampingEvent', 'true');
+                    localStorage.setItem('campingStartDate', event.campingStartDate || '');
+                    localStorage.setItem('campingEndDate', event.campingEndDate || '');
+                    localStorage.setItem('campingDateFormat', event.campingDateFormat || 'short');
+                    localStorage.setItem('customDateFormat', event.customDateFormat || '');
+                    localStorage.setItem('preferredCampingDateFormat', localStorage.getItem('preferredCampingDateFormat') || 'short');
+                    localStorage.setItem('preferredCustomDateFormat', localStorage.getItem('preferredCustomDateFormat') || '');
+                    console.log('Camping data stored:', {
+                        isCampingEvent: 'true',
+                        campingStartDate: event.campingStartDate,
+                        campingEndDate: event.campingEndDate,
+                        campingDateFormat: event.campingDateFormat
+                    });
+                } else {
+                    // Clear camping data for non-camping events
+                    localStorage.removeItem('isCampingEvent');
+                    localStorage.removeItem('campingStartDate');
+                    localStorage.removeItem('campingEndDate');
+                    localStorage.removeItem('campingDateFormat');
+                    localStorage.removeItem('customDateFormat');
+                }
+                
+                // Helper function to validate venue image data
+                function isValidVenueImage(imageData) {
+                    if (!imageData || typeof imageData !== 'string') return false;
+                    if (imageData.length < 100) return false; // Too short to be valid
+                    if (!imageData.startsWith('data:image/')) return false; // Not a data URL
+                    return true;
+                }
+                
+                // Copy venue image data for this specific event with validation
+                if (event.venueImage && isValidVenueImage(event.venueImage)) {
+                    try {
+                        localStorage.setItem('venueImage', event.venueImage);
+                        console.log('Copied valid venue image for event:', event.id, 'Size:', event.venueImage.length, 'chars');
+                    } catch (error) {
+                        console.error('Failed to save venue image to localStorage:', error);
+                        // Clear any corrupted data
+                        localStorage.removeItem('venueImage');
+                    }
+                } else {
+                    console.log('No valid venue image found for event:', event.id);
+                    localStorage.removeItem('venueImage');
+                }
+                
+                if (event.venueLocation) {
+                    localStorage.setItem('venueLocation', event.venueLocation);
+                    console.log('Copied venue location for event:', event.id);
+                }
+                
+                // Also copy venue map data from the complex structure with validation
+                const venueMapDataKey = 'venueMapData';
+                const venueMapData = JSON.parse(localStorage.getItem(venueMapDataKey) || '{}');
+                console.log('Venue map data:', venueMapData);
+                if (venueMapData[event.id]) {
+                    console.log('Found venue map data for event:', event.id, venueMapData[event.id]);
+                    if (venueMapData[event.id].venueImage && isValidVenueImage(venueMapData[event.id].venueImage)) {
+                        try {
+                            localStorage.setItem('venueImage', venueMapData[event.id].venueImage);
+                            console.log('Copied valid venue image from venueMapData for event:', event.id, 'Size:', venueMapData[event.id].venueImage.length, 'chars');
+                        } catch (error) {
+                            console.error('Failed to save venue image from venueMapData:', error);
+                            localStorage.removeItem('venueImage');
+                        }
+                    }
+                    if (venueMapData[event.id].mapLocation) {
+                        localStorage.setItem('venueLocation', venueMapData[event.id].mapLocation);
+                        console.log('Copied venue location from venueMapData for event:', event.id);
+                    }
+                } else {
+                    console.log('No venue map data found for event:', event.id);
+                }
+                
+                // Final validation of venue image data
+                const currentVenueImage = localStorage.getItem('venueImage');
+                if (currentVenueImage && isValidVenueImage(currentVenueImage)) {
+                    console.log('Final venue image validation passed, length:', currentVenueImage.length);
+                } else {
+                    console.log('No valid venue image data in localStorage after copying');
+                    localStorage.removeItem('venueImage');
+                }
+                
+                // Navigate to index.html to show the ticket
+                window.location.href = 'index.html';
+            });
+            
+            return card;
+        }
+
+        // Helper function to parse event date string
+        function parseEventDate(dateStr) {
+            console.log("Parsing date string:", dateStr);
+            
+            // Try to handle various date formats
+            try {
+                // First, try to parse as ISO date string (from countdownTargetDate)
+                if (dateStr.includes('T') && dateStr.includes('Z')) {
+                    return new Date(dateStr);
+                }
+                
+                // Handle format like "Sat, Nov 22, 2025, 7:00 PM" or "Sat, Nov 22, 7:00 PM"
+                const parts = dateStr.split(',');
+                if (parts.length >= 3) {
+                    const monthDay = parts[1].trim().split(' ');
+                    const month = monthDay[0];
+                    const day = parseInt(monthDay[1]);
+                    
+                    // Check if year is provided in the date string
+                    let year;
+                    let timeStr;
+                    
+                    if (parts.length >= 4 && /^\d{4}$/.test(parts[2].trim())) {
+                        // Year is provided: "Sat, Nov 22, 2025, 7:00 PM"
+                        year = parseInt(parts[2].trim());
+                        timeStr = parts[3].trim();
+                    } else {
+                        // No year provided: "Sat, Nov 22, 7:00 PM" - use current year
+                        year = new Date().getFullYear();
+                        timeStr = parts[2].trim();
+                    }
+                    
+                    const timeParts = timeStr.split(' ');
+                    let time = timeParts[0];
+                    const ampm = timeParts[1];
+                    
+                    // Convert month name to month number
+                    const months = {
+                        'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+                        'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+                    };
+                    
+                    const monthNum = months[month];
+                    
+                    // Parse time
+                    const [hours, minutes] = time.split(':').map(Number);
+                    
+                    // Create date object with the correct year
+                    const eventDate = new Date(year, monthNum, day);
+                    
+                    // Set time
+                    let adjustedHours = hours;
+                    if (ampm === 'PM' && hours < 12) adjustedHours += 12;
+                    if (ampm === 'AM' && hours === 12) adjustedHours = 0;
+                    
+                    eventDate.setHours(adjustedHours, minutes, 0, 0);
+                    
+                    console.log("Parsed date with year:", eventDate, "Year:", year);
+                    return eventDate;
+                }
+                
+                // If all else fails, try standard date parsing
+                return new Date(dateStr);
+            } catch (e) {
+                console.error("Error parsing date:", e);
+                // Return a future date as fallback
+                const futureDate = new Date();
+                futureDate.setDate(futureDate.getDate() + 30); // 30 days in the future
+                return futureDate;
+            }
+        }
+        
+        // Enhanced function to get parseable date for camping events
+        function getEventDateForComparison(event) {
+            console.log('=== EVENT DATE COMPARISON DEBUG ===');
+            console.log('Event:', event.title);
+            console.log('Is camping event:', event.isCampingEvent);
+            console.log('Has parseable date:', !!event.parseableDate);
+            console.log('Parseable date value:', event.parseableDate);
+            console.log('Display date:', event.date);
+            console.log('Event date:', event.eventDate);
+            
+            // For camping events, use the parseable date if available
+            if (event.isCampingEvent && event.parseableDate) {
+                console.log('Using parseable camping date:', event.parseableDate);
+                // CRITICAL FIX: Parse camping dates without timezone conversion
+                if (event.campingStartDate) {
+                    const parsedDate = parseDateWithoutTimezone(event.campingStartDate);
+                    console.log('Parsed camping start date (local):', parsedDate);
+                    console.log('========================');
+                    return parsedDate;
+                } else if (event.parseableDate && event.parseableDate.includes('-')) {
+                    // Fallback to parseable date if camping dates not available
+                    const parsedDate = parseDateWithoutTimezone(event.parseableDate);
+                    console.log('Parsed camping date (fallback):', parsedDate);
+                    console.log('========================');
+                    return parsedDate;
+                } else {
+                    // Last resort: try to parse the parseable date as a regular date
+                    const parsedDate = new Date(event.parseableDate);
+                    console.log('Parsed camping date (last resort):', parsedDate);
+                    console.log('========================');
+                    return parsedDate;
+                }
+            }
+            
+            // For regular events, prioritize parseableDate
+            if (event.parseableDate) {
+                console.log('Using parseableDate:', event.parseableDate);
+                // Check if it's a YYYY-MM-DD format (local date only)
+                if (event.parseableDate.includes('-') && event.parseableDate.length === 10) {
+                    const parsedDate = parseDateWithoutTimezone(event.parseableDate);
+                    console.log('Parsed parseableDate (local):', parsedDate);
+                    console.log('========================');
+                    return parsedDate;
+                } else {
+                    // Fallback to regular date parsing for ISO strings
+                    const parsedDate = new Date(event.parseableDate);
+                    console.log('Parsed parseableDate (ISO):', parsedDate);
+                    console.log('========================');
+                    return parsedDate;
+                }
+            }
+            
+            // Fall back to eventDate if available
+            if (event.eventDate) {
+                console.log('Using eventDate:', event.eventDate);
+                const parsedDate = new Date(event.eventDate);
+                console.log('Parsed eventDate:', parsedDate);
+                console.log('========================');
+                return parsedDate;
+            }
+            
+            // Last resort: parse the display date
+            console.log('Falling back to parsing display date:', event.date);
+            const parsedDate = parseEventDate(event.date);
+            console.log('Parsed display date:', parsedDate);
+            console.log('========================');
+            return parsedDate;
+        }
+        
+        // Parse date strings without timezone conversion
+        function parseDateWithoutTimezone(dateString) {
+            // dateString format: "2025-09-04" (YYYY-MM-DD)
+            const [year, month, day] = dateString.split('-').map(Number);
+            // Create date in local timezone (month is 0-indexed in Date constructor)
+            return new Date(year, month - 1, day);
+        }
+        
+        // Function to get the display date for camping events with current format preference
+        function getDisplayDate(event) {
+            // If it's a camping event, regenerate the date format using current preference
+            if (event.isCampingEvent && event.campingStartDate && event.campingEndDate) {
+                console.log('=== REGENERATING CAMPING DATE FORMAT ===');
+                console.log('Camping start date:', event.campingStartDate);
+                console.log('Camping end date:', event.campingEndDate);
+                console.log('Camping date format:', event.campingDateFormat);
+                
+                // Get current camping date format preference
+                const currentFormat = localStorage.getItem('preferredCampingDateFormat') || 'short';
+                console.log('Current format preference:', currentFormat);
+                
+                // CRITICAL FIX: Create Date objects without timezone conversion
+                // Parse the date string manually to avoid timezone issues
+                const start = parseDateWithoutTimezone(event.campingStartDate);
+                const end = parseDateWithoutTimezone(event.campingEndDate);
+                
+                console.log('Parsed start date (local):', start);
+                console.log('Parsed end date (local):', end);
+                
+                // Regenerate the date format using current preference
+                let formattedDate = '';
+                if (currentFormat === 'long') {
+                    formattedDate = formatLongCampingDate(start, end);
+                } else if (currentFormat === 'custom' && event.customDateFormat) {
+                    formattedDate = formatCustomCampingDate(start, end);
+                } else {
+                    // Default to short format
+                    formattedDate = formatShortCampingDate(start, end);
+                }
+                
+                console.log('Regenerated camping date format:', formattedDate);
+                console.log('================================');
+                return formattedDate;
+            }
+            
+            // For non-camping events, ensure the date includes the year
+            if (event.date) {
+                // Check if the date already includes a year (4 digits)
+                if (/\d{4}/.test(event.date)) {
+                    return event.date;
+                } else {
+                    // Parse the date and add the year
+                    try {
+                        const parsedDate = parseEventDate(event.date);
+                        if (parsedDate) {
+                            const year = parsedDate.getFullYear();
+                            const day = parsedDate.toLocaleDateString('en-US', { weekday: 'short' });
+                            const month = parsedDate.toLocaleDateString('en-US', { month: 'short' });
+                            const date = parsedDate.getDate();
+                            const time = parsedDate.toLocaleTimeString('en-US', { 
+                                hour: 'numeric', 
+                                minute: '2-digit',
+                                hour12: true 
+                            });
+                            
+                            return `${day}, ${month} ${date}, ${year} • ${time}`;
+                        }
+                    } catch (error) {
+                        console.error('Error parsing date for year addition:', error);
+                    }
+                }
+            }
+            
+            // Fallback to original date
+            return event.date;
+        }
+        
+        // Camping date formatting functions
+        function formatShortCampingDate(start, end) {
+            const startDay = start.toLocaleDateString('en-US', { weekday: 'short' });
+            const startDate = start.getDate();
+            const startMonth = start.toLocaleDateString('en-US', { month: 'short' });
+            const endDay = end.toLocaleDateString('en-US', { weekday: 'short' });
+            const endDate = end.getDate();
+            const endMonth = end.toLocaleDateString('en-US', { month: 'short' });
+            const year = start.getFullYear();
+            
+            // If same month, show: Fri, 29 Aug - Sun, 31 Aug 2025
+            if (start.getMonth() === end.getMonth()) {
+                return `${startDay}, ${startDate} ${startMonth} - ${endDay}, ${endDate} ${endMonth} ${year}`;
+            } else {
+                // Different months: Fri, 29 Aug - Sun, 31 Sep 2025
+                return `${startDay}, ${startDate} ${startMonth} - ${endDay}, ${endDate} ${endMonth} ${year}`;
+            }
+        }
+        
+        function formatLongCampingDate(start, end) {
+            const startDay = start.toLocaleDateString('en-US', { weekday: 'long' });
+            const startDate = start.getDate();
+            const startMonth = start.toLocaleDateString('en-US', { month: 'long' });
+            const endDay = end.toLocaleDateString('en-US', { weekday: 'long' });
+            const endDate = end.getDate();
+            const endMonth = end.toLocaleDateString('en-US', { month: 'long' });
+            const year = start.getFullYear();
+            
+            if (start.getMonth() === end.getMonth()) {
+                return `${startDay}, ${startMonth} ${startDate} - ${endDay}, ${endMonth} ${endDate}, ${year}`;
+            } else {
+                return `${startDay}, ${startMonth} ${startDate} - ${endDay}, ${endMonth} ${endDate}, ${year}`;
+            }
+        }
+        
+        function formatCustomCampingDate(start, end) {
+            const customFormat = localStorage.getItem('preferredCustomDateFormat') || '';
+            if (!customFormat) return formatShortCampingDate(start, end);
+            
+            const startDay = start.toLocaleDateString('en-US', { weekday: 'short' });
+            const startDate = start.getDate();
+            const startMonth = start.toLocaleDateString('en-US', { month: 'short' });
+            const endDay = end.toLocaleDateString('en-US', { weekday: 'short' });
+            const endDate = end.getDate();
+            const endMonth = end.toLocaleDateString('en-US', { month: 'short' });
+            const year = start.getFullYear();
+            
+            return customFormat
+                .replace(/{startDay}/g, startDay)
+                .replace(/{startDate}/g, startDate)
+                .replace(/{startMonth}/g, startMonth)
+                .replace(/{endDay}/g, endDay)
+                .replace(/{endDate}/g, endDate)
+                .replace(/{endMonth}/g, endMonth)
+                .replace(/{year}/g, year);
+        }
+
+        // Navigation functionality
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                // Only prevent default for the current page (my-events.html)
+                if (this.href.includes('my-events.html')) {
+                    e.preventDefault();
+                }
+                
+                // Remove active class from all nav items and switch to grey icons
+                document.querySelectorAll('.nav-item').forEach(nav => {
+                    nav.classList.remove('active');
+                    const img = nav.querySelector('.nav-icon');
+                    const greyIcon = nav.getAttribute('data-grey-icon');
+                    if (img && greyIcon) {
+                        img.src = greyIcon;
+                    }
+                });
+                
+                // Add active class to clicked item and switch to blue icon
+                this.classList.add('active');
+                const img = this.querySelector('.nav-icon');
+                const blueIcon = this.getAttribute('data-blue-icon');
+                if (img && blueIcon) {
+                    img.src = blueIcon;
+                }
+            });
+        });
+    </script>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="home.html" class="nav-item" data-grey-icon="public/assets/discover_grey.png" data-blue-icon="public/assets/discover_blue.png">
+            <img src="public/assets/discover_grey.png" alt="Discover" class="nav-icon">
+            <span class="nav-label">Discover</span>
+        </a>
+        <a href="for-you.html" class="nav-item" data-grey-icon="public/assets/for_you_grey.png" data-blue-icon="public/assets/heart.png">
+            <img src="public/assets/for_you_grey.png" alt="For You" class="nav-icon">
+            <span class="nav-label">For You</span>
+        </a>
+        <a href="my-events.html" class="nav-item active" data-grey-icon="public/assets/grey_event.png" data-blue-icon="public/assets/events.png">
+            <img src="public/assets/events.png" alt="My Tickets" class="nav-icon">
+            <span class="nav-label">My Tickets</span>
+        </a>
+        <a href="sell.html" class="nav-item" data-grey-icon="public/assets/sell_grey.png" data-blue-icon="public/assets/sell_blue.png">
+            <img src="public/assets/sell_grey.png" alt="Sell" class="nav-icon">
+            <span class="nav-label">Sell</span>
+        </a>
+        <a href="account.html" class="nav-item" data-grey-icon="public/assets/account_grey.png" data-blue-icon="public/assets/account-blue.png">
+            <img src="public/assets/account_grey.png" alt="My Account" class="nav-icon">
+            <span class="nav-label">My Account</span>
+        </a>
+    </nav>
+
+</body></html>

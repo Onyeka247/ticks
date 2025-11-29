@@ -1,0 +1,337 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <title>Ticket Details</title>
+    <style>
+        body {
+            background: #fff;
+            font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+            color: #222;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            -webkit-text-size-adjust: 100%;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .tm-header {
+            background: #111;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 18px 12px 18px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        .tm-back {
+            cursor: pointer;
+        }
+        .tm-title {
+            font-weight: 600;
+            font-size: 19px;
+            flex: 1;
+            text-align: center;
+            letter-spacing: 0.01em;
+        }
+        .tm-content {
+            padding: 60px 0 30px 0;
+            max-width: 500px;
+            margin: 0 auto;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        .tm-section {
+            background: #fafbfc;
+            border-bottom: 1px solid #e5e5e5;
+            padding: 18px 20px 10px 20px;
+        }
+        .tm-section:first-child {
+            padding-top: 24px;
+        }
+        .tm-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 4px;
+        }
+        .tm-value {
+            font-size: 16px;
+            color: #222;
+            margin-bottom: 4px;
+            font-weight: 400;
+        }
+        .tm-event-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #222;
+        }
+        .tm-event-details {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 2px;
+        }
+        .tm-ticket-info {
+            font-size: 15px;
+            color: #222;
+            line-height: 1.5;
+            margin-bottom: 4px;
+            font-family: monospace, monospace;
+        }
+        .tm-price-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            color: #222;
+            margin-bottom: 2px;
+        }
+        .tm-grand {
+            font-weight: 700;
+            color: #111;
+            margin-top: 8px;
+        }
+        .tm-terms {
+            background: #fff;
+            border: none;
+            padding-top: 18px;
+        }
+        .tm-terms-text {
+            font-size: 13px;
+            color: #666;
+            margin-top: 6px;
+            line-height: 1.6;
+        }
+        .tm-terms-text a {
+            color: #026cdf;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="tm-header">
+        <svg class="tm-back" onclick="goBack()" xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+        <span class="tm-title">Ticket Details</span>
+        <span style="width:28px"></span>
+    </div>
+    <div class="tm-content">
+        <div class="tm-section">
+            <div class="tm-event-title" id="eventTitle">Gracie Abrams: The Secret Of Us Deluxe Tour with Djo</div>
+            <div class="tm-event-details" id="eventInfo">Thu, Jul 24, 2025, 8:00 PM · TD Garden</div>
+        </div>
+        <div class="tm-section">
+            <div class="tm-label">Entry Info</div>
+            <div class="tm-value" id="entryInfo"></div>
+        </div>
+        <div class="tm-section">
+            <div class="tm-label">Ticket Info</div>
+            <div class="tm-ticket-info" id="ticketInfoBlock" contenteditable="true" style="font-family: monospace, monospace;"></div>
+        </div>
+        <div class="tm-section">
+            <div class="tm-label">Venue</div>
+            <input type="text" class="tm-value" id="venueInfo" style="font-size:16px; font-weight:400; border:none; background:transparent; width:100%; padding:0; margin:0;">
+        </div>
+        <div class="tm-section">
+            <div class="tm-label">Order Number</div>
+            <input type="text" class="tm-value" id="orderNumber" style="font-size:16px; font-weight:400; border:none; background:transparent; width:100%; padding:0; margin:0;">
+        </div>
+        <div class="tm-section">
+            <div class="tm-label">Ticket Type</div>
+            <div class="tm-value" id="ticketType"></div>
+        </div>
+        <div class="tm-section">
+            <div class="tm-label">Purchase Date</div>
+            <div class="tm-value" id="purchaseDateDisplay" style="font-size:16px; font-weight:400; color:#222; padding:0; margin:0;"></div>
+        </div>
+        <div class="tm-section">
+            <div class="tm-label">Ticket Price</div>
+            <div class="tm-price-row">
+                <div id="artistPresaleLabel">Artist Presale</div>
+                <div id="artistPresalePrice"></div>
+            </div>
+            <div class="tm-price-row">
+                <div>Fee</div>
+                <div id="feePrice"></div>
+            </div>
+            <div class="tm-price-row tm-grand">
+                <div>GRAND TOTAL</div>
+                <div id="grandTotal"></div>
+            </div>
+        </div>
+        <div class="tm-section tm-terms">
+            <div class="tm-label">Terms &amp; Conditions</div>
+            <div class="tm-terms-text">
+                By using this ticket, you agree to Ticketmaster’s <a href="https://help.ticketmaster.com/hc/en-us/articles/10000166266765-Terms-of-Use" target="_blank">Terms of Use</a>. Tickets are non-refundable except as required by law. Entry is subject to venue security and health policies. No bags permitted. Unauthorized resale or duplication may result in denial of entry. For full terms, visit Ticketmaster.com.
+            </div>
+        </div>
+    </div>
+    <script>
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        // Helper to get value or fallback
+        function getLS(key, fallback) {
+            const v = localStorage.getItem(key);
+            return (v !== null && v !== undefined && v !== "") ? v : fallback;
+        }
+
+        // Fill in ticket details from localStorage or fallback values
+        document.addEventListener('DOMContentLoaded', function() {
+            function updateTicketDetails() {
+                // Event title
+                document.getElementById('eventTitle').textContent =
+                    getLS('eventTitle', 'Gracie Abrams: The Secret Of Us Deluxe Tour with Djo');
+                // Event info (date + venue)
+                const eventDate = getLS('eventDate', 'Thu, Jul 24, 2025, 8:00 PM');
+                const eventVenue = getLS('eventVenue', 'TD Garden');
+                document.getElementById('eventInfo').textContent = `${eventDate} · ${eventVenue}`;
+
+                // Entry Info (section or GA) - get from active event or fallback
+                const activeEventId = localStorage.getItem('activeEvent');
+                let entryLevel = 'LOGE 12';
+                if (activeEventId) {
+                    const events = JSON.parse(localStorage.getItem('events') || '[]');
+                    const activeEvent = events.find(event => event.id === activeEventId);
+                    if (activeEvent && activeEvent.entryLevel) {
+                        entryLevel = activeEvent.entryLevel;
+                    } else {
+                        entryLevel = getLS('entryLevel', 'LOGE 12');
+                    }
+                } else {
+                     entryLevel = getLS('entryLevel', 'LOGE 12');
+ori                }
+                const entryInfoInput = document.getElementById('entryInfo');
+                entryInfoInput.value = entryLevel;
+                entryInfoInput.addEventListener('input', function() {
+                    localStorage.setItem('entryLevel', entryInfoInput.value);
+                });
+
+                // Ticket Info block
+                let ticketInfoBlock = getLS('ticketInfoBlock', null);
+                if (!ticketInfoBlock) {
+                    ticketInfoBlock = [];
+                    ticketInfoBlock.push('LIVE NATION PRESENTS');
+                    ticketInfoBlock.push(document.getElementById('eventTitle').textContent);
+                    ticketInfoBlock.push(eventVenue);
+                    ticketInfoBlock.push('NO BAGS PERMITTED');
+                    ticketInfoBlock.push(eventDate.toUpperCase());
+                    ticketInfoBlock = ticketInfoBlock.join('<br>');
+                }
+                document.getElementById('ticketInfoBlock').innerHTML = ticketInfoBlock;
+
+            // Venue Info
+            const venueInput = document.getElementById('venueInfo');
+            venueInput.value = getLS('venueLocation', 'Boston MA US');
+
+            // Update localStorage when venue input changes
+            venueInput.addEventListener('input', function() {
+                localStorage.setItem('venueLocation', venueInput.value);
+            });
+
+            // Order Number (now visible)
+            const orderNumberInput = document.getElementById('orderNumber');
+            orderNumberInput.value = getLS('orderNumber', 'XXXXXXXXXX');
+
+            // Save order number on input change
+            orderNumberInput.addEventListener('input', function() {
+                localStorage.setItem('orderNumber', orderNumberInput.value);
+            });
+
+                // Ticket Type
+                document.getElementById('ticketType').textContent =
+                    getLS('ticketType', 'Artist Presale');
+
+            // Purchase Date
+            const paymentDateStr = getLS('paymentDate', 'Thu, Dec 12, 2024 - 3:09PM');
+
+            // Format date string for display
+            function formatDateForDisplay(dateStr) {
+                const date = new Date(dateStr);
+                if (isNaN(date)) return '';
+                const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                return date.toLocaleDateString(undefined, options);
+            }
+
+            const purchaseDateInput = document.getElementById('purchaseDate');
+            function formatDateForInput(dateStr) {
+                const date = new Date(dateStr);
+                if (isNaN(date)) return '';
+                const year = date.getFullYear();
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const day = date.getDate().toString().padStart(2, '0');
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+            purchaseDateInput.value = formatDateForInput(paymentDateStr);
+            purchaseDateInput.addEventListener('change', function() {
+                const newDate = new Date(purchaseDateInput.value);
+                localStorage.setItem('paymentDate', newDate.toLocaleString());
+            });
+
+                // Prices
+                const artistPresaleLabelInput = document.getElementById('artistPresaleLabel');
+                artistPresaleLabelInput.value = getLS('ticketType', 'Artist Presale');
+                artistPresaleLabelInput.addEventListener('input', function() {
+                    localStorage.setItem('ticketType', artistPresaleLabelInput.value);
+                });
+
+                const artistPresalePriceInput = document.getElementById('artistPresalePrice');
+                artistPresalePriceInput.value = getLS('ticketPrice', '199.50');
+                artistPresalePriceInput.addEventListener('input', function() {
+                    localStorage.setItem('ticketPrice', artistPresalePriceInput.value);
+                    updatePrices();
+                });
+
+                // Fee = serviceFee + facilityCharge + processingFee
+                const fee = (
+                    parseFloat(getLS('serviceFee', '45.65')) +
+                    parseFloat(getLS('facilityCharge', '0')) +
+                    parseFloat(getLS('processingFee', '0'))
+                ).toFixed(2);
+                const feePriceInput = document.getElementById('feePrice');
+                feePriceInput.value = fee;
+                feePriceInput.addEventListener('input', function() {
+                    // Assuming fee is entered without '$'
+                    localStorage.setItem('serviceFee', feePriceInput.value); // This needs more granular saving if fee components are separate
+                    updatePrices();
+                });
+                // Grand total
+                const ticketPrice = parseFloat(getLS('ticketPrice', '199.50'));
+                const grandTotal = (ticketPrice + parseFloat(fee)).toFixed(2);
+                const grandTotalInput = document.getElementById('grandTotal');
+                grandTotalInput.value = grandTotal;
+                grandTotalInput.addEventListener('input', function() {
+                    // Grand total is calculated, so direct saving might not be ideal unless it's overridden
+                    updatePrices();
+                });
+
+            function updatePrices() {
+                const currentTicketPrice = parseFloat(artistPresalePriceInput.value);
+                const currentFee = parseFloat(feePriceInput.value);
+                const newGrandTotal = (currentTicketPrice + currentFee).toFixed(2);
+                grandTotalInput.value = newGrandTotal;
+                localStorage.setItem('ticketPrice', currentTicketPrice.toFixed(2));
+                localStorage.setItem('serviceFee', currentFee.toFixed(2)); // This is a simplification, ideally individual fee components would be saved
+            }
+            }
+
+            updateTicketDetails();
+
+            window.addEventListener('storage', function(event) {
+                if (event.key === 'venueLocation' || event.key === 'entryLevel' || event.key === 'ticketType' || event.key === 'ticketPrice' || event.key === 'paymentDate' || event.key === 'orderNumber' || event.key === 'eventTitle' || event.key === 'eventDate' || event.key === 'ticketInfoBlock' || event.key === 'activeEvent' || event.key === 'events') {
+                    updateTicketDetails();
+                }
+            });
+
+            // Save ticketInfoBlock changes to localStorage on blur
+            const ticketInfoBlockDiv = document.getElementById('ticketInfoBlock');
+            ticketInfoBlockDiv.addEventListener('blur', function() {
+                localStorage.setItem('ticketInfoBlock', ticketInfoBlockDiv.innerHTML);
+            });
+        });
+    </script>
+
+</body></html>

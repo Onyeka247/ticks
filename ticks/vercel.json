@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "/api/**/*.js", "use": "@vercel/node" },
+    { "src": "public/**/*", "use": "@vercel/static" }
+  ],
+  "rewrites": [
+    { "source": "/api/ticketmaster-events", "destination": "/api/ticketmaster-events.js" },
+    { "source": "/api/ticketmaster-image", "destination": "/api/ticketmaster-image.js" },
+    { "source": "/home", "destination": "/home.html" },
+    { "source": "/my-events", "destination": "/my-events.html" },
+    { "source": "/for-you", "destination": "/for-you.html" },
+    { "source": "/account", "destination": "/account.html" },
+    { "source": "/sell", "destination": "/sell.html" },
+    {
+      "source": "/",
+      "destination": "/splash.html"
+    }
+  ]
+}
